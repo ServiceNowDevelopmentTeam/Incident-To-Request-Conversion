@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="catalog_ui_policy_action">
+    <catalog_ui_policy_action action="INSERT_OR_UPDATE">
+        <catalog_item/>
+        <catalog_variable>IO:9947ae711b0d78d0e7004229bc4bcbe2</catalog_variable>
+        <cleared>false</cleared>
+        <disabled>true</disabled>
+        <field/>
+        <mandatory>ignore</mandatory>
+        <order>100</order>
+        <sys_class_name>catalog_ui_policy_action</sys_class_name>
+        <sys_created_by>Terry.Lillo</sys_created_by>
+        <sys_created_on>2021-06-30 15:32:33</sys_created_on>
+        <sys_id>c64be2fd1b0d78d0e7004229bc4bcbf2</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>related_incident_info</sys_name>
+        <sys_package display_value="Global" source="global">global</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Incident to Request Conversion">448cd64e1bd5c55062e50ed2cd4bcb56</sys_scope>
+        <sys_update_name>catalog_ui_policy_action_c64be2fd1b0d78d0e7004229bc4bcbf2</sys_update_name>
+        <sys_updated_by>Terry.Lillo</sys_updated_by>
+        <sys_updated_on>2022-01-28 15:37:20</sys_updated_on>
+        <table/>
+        <ui_policy display_value="Related Incident Info Read Only">822baebd1b0d78d0e7004229bc4bcb0e</ui_policy>
+        <variable>related_incident_info</variable>
+        <variable_set display_value="Related Incident or RITM">74c273a43724370090b68cf6c3990ea4</variable_set>
+        <visible>ignore</visible>
+    </catalog_ui_policy_action>
+    <sys_claim action="INSERT_OR_UPDATE">
+        <claim_owner_scope display_value="Incident to Request Conversion">448cd64e1bd5c55062e50ed2cd4bcb56</claim_owner_scope>
+        <claim_timestamp>17ea155a15a0000001</claim_timestamp>
+        <metadata_update_name>catalog_ui_policy_action_c64be2fd1b0d78d0e7004229bc4bcbf2</metadata_update_name>
+        <previous_claim_app_version>1.0.0</previous_claim_app_version>
+        <previous_claim_name>Incident to Request Conversion</previous_claim_name>
+        <previous_claim_scope>448cd64e1bd5c55062e50ed2cd4bcb56</previous_claim_scope>
+        <sys_created_by>Terry.Lillo</sys_created_by>
+        <sys_created_on>2022-01-28 15:37:30</sys_created_on>
+        <sys_id>7b7d16021b19c55062e50ed2cd4bcb6e</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>Terry.Lillo</sys_updated_by>
+        <sys_updated_on>2022-01-28 15:37:30</sys_updated_on>
+    </sys_claim>
+</record_update>
