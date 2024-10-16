@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element db_object_id="498845a21b687cd0e7004229bc4bcb06" label="Incident To Request Conversion" max_length="40" name="u_incident_to_request_conversion" type="collection">
+        <element attributes="edge_encryption_enabled=true,encode_utf8=false" label="Catalog Item" max_length="32" name="u_catalog_item" reference="sc_cat_item" type="reference"/>
+        <element attributes="edge_encryption_enabled=true,encode_utf8=false" label="Incident" max_length="32" name="u_incident" reference="incident" type="reference"/>
+        <element attributes="ignore_filter_on_new=true" default="javascript:global.getNextObjNumberPadded();" label="Number" max_length="40" name="u_number" type="string"/>
+        <element label="Short Description" max_length="40" name="u_short_description" type="string"/>
+        <element label="State" max_length="40" name="u_state" type="string"/>
+        <index name="index">
+            <element name="u_catalog_item"/>
+        </index>
+        <index name="index2">
+            <element name="u_incident"/>
+        </index>
+    </element>
+</database>

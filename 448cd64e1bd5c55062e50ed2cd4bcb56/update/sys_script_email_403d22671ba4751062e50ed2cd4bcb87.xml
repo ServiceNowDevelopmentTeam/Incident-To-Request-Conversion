@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_email">
+    <sys_script_email action="INSERT_OR_UPDATE">
+        <name>click_here_incident_conversion_url</name>
+        <new_lines_to_html>false</new_lines_to_html>
+        <script><![CDATA[(function runMailScript(/* GlideRecord */ current, /* TemplatePrinter */ template,
+          /* Optional EmailOutbound */ email, /* Optional GlideRecord */ email_action,
+          /* Optional GlideRecord */ event) {
+    var linkText = "Click here";
+	var glideURL = 'https://' + gs.getProperty('instance_name') +  '.service-now.com/sp?id=sc_cat_item&amp;sys_id=${u_catalog_item.sys_id}&amp;sysparm_category=${u_catalog_item.category.sys_id}&amp;sysparm_variables=%7B%22related_inc%22:%22${u_incident.sys_id}%22%7D';
+	
+    template.print('<a href="' + glideURL + '">' + linkText + '</a>');
+})(current, template, email, email_action, event);]]></script>
+        <sys_class_name>sys_script_email</sys_class_name>
+        <sys_created_by>Terry.Lillo</sys_created_by>
+        <sys_created_on>2023-08-15 14:23:19</sys_created_on>
+        <sys_id>403d22671ba4751062e50ed2cd4bcb87</sys_id>
+        <sys_mod_count>3</sys_mod_count>
+        <sys_name>click_here_incident_conversion_url</sys_name>
+        <sys_package display_value="Incident to Request Conversion" source="448cd64e1bd5c55062e50ed2cd4bcb56">448cd64e1bd5c55062e50ed2cd4bcb56</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Incident to Request Conversion">448cd64e1bd5c55062e50ed2cd4bcb56</sys_scope>
+        <sys_update_name>sys_script_email_403d22671ba4751062e50ed2cd4bcb87</sys_update_name>
+        <sys_updated_by>Terry.Lillo</sys_updated_by>
+        <sys_updated_on>2023-08-15 18:07:25</sys_updated_on>
+    </sys_script_email>
+</record_update>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_ui_action">
+    <sys_ui_action action="INSERT_OR_UPDATE">
+        <action_name/>
+        <active>true</active>
+        <client>true</client>
+        <client_script_v2><![CDATA[function onClick(g_form) {
+
+	if( g_form.getValue('caller_id') == '' ||
+		g_form.getValue('category') == '' ||
+		g_form.getValue('subcategory') == '' ||
+		g_form.getValue('contact_type') == '' ||
+		g_form.getValue('short_description') == ''){
+		g_form.addErrorMessage('Missing required field.');
+	}
+	else{
+		var URL = '/catalog_item_list.do?number=' +
+			g_form.getValue('number') + "&state=" +
+			g_form.getValue('state') + "&short_description=" +
+			g_form.getValue('short_description') + "&caller_id=" +
+			g_form.getValue('caller_id') + "&requested_for=" + 
+			g_user.userID + "&caller_id_display=" +
+			g_form.getValue('caller_id.name') + "&requested_for_display="+
+			g_user.firstName + " " + g_user.lastName;
+		g_modal.showFrame({title: 'Convert Incident to Request', url: URL, size:'lg', height: '25rem',});
+	}
+}]]></client_script_v2>
+        <comments>Converts the Incident To a Request</comments>
+        <condition>current.state !=  6 &amp;&amp; current.state != 7 &amp;&amp; current.state != 8 </condition>
+        <form_action>true</form_action>
+        <form_button>true</form_button>
+        <form_button_v2>true</form_button_v2>
+        <form_context_menu>true</form_context_menu>
+        <form_link>false</form_link>
+        <form_menu_button_v2>false</form_menu_button_v2>
+        <form_style/>
+        <format_for_configurable_workspace>false</format_for_configurable_workspace>
+        <hint/>
+        <isolate_script>false</isolate_script>
+        <list_action>false</list_action>
+        <list_banner_button>false</list_banner_button>
+        <list_button>false</list_button>
+        <list_choice>false</list_choice>
+        <list_context_menu>false</list_context_menu>
+        <list_link>false</list_link>
+        <list_save_with_form_button>false</list_save_with_form_button>
+        <list_style/>
+        <messages/>
+        <name>Convert to a Request</name>
+        <onclick>processRequest()</onclick>
+        <order>100</order>
+        <script><![CDATA[function processRequest() {
+	var arrMand = g_form.getMissingFields();
+	if(!g_form.modified){
+		if (arrMand.length > 0) {
+			g_form.addErrorMessage('Missing required field.');
+		} else {
+			popModal();
+		}
+	} else {
+		g_form.addErrorMessage('Please save the form before converting the incident.');
+	}
+}
+
+function popModal(){
+	var callerId = g_form.getValue("caller_id");
+	var openedBy = g_user.getUserID();
+	var dialog = new GlideDialogWindow("catalog_item_list", false, 700);
+	dialog.setTitle("");
+	dialog.removeCloseDecoration();
+	dialog.setPreference("number", g_form.getValue("number"));
+	dialog.setPreference("short_description", g_form.getValue("short_description"));
+	dialog.setPreference("state", g_form.getValue("state"));
+	dialog.setPreference("requested_for", callerId.sys_id);
+	dialog.setPreference("caller_id", g_form.getValue("caller_id"));
+	dialog.setPreference("requested_for_display", callerId.name);
+	dialog.setPreference("caller_id_display", openedBy.firstName + ' ' + openedBy.lastName);
+	dialog.setWidth(700);
+	dialog.render();
+}]]></script>
+        <show_insert>false</show_insert>
+        <show_multiple_update>false</show_multiple_update>
+        <show_query>false</show_query>
+        <show_update>true</show_update>
+        <sys_class_name>sys_ui_action</sys_class_name>
+        <sys_created_by>Terry.Lillo</sys_created_by>
+        <sys_created_on>2021-06-07 14:33:50</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_domain_path>/</sys_domain_path>
+        <sys_id>c711cc6e1bac3cd0e7004229bc4bcb60</sys_id>
+        <sys_mod_count>115</sys_mod_count>
+        <sys_name>Convert to a Request</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="Global" source="global">global</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Incident to Request Conversion">448cd64e1bd5c55062e50ed2cd4bcb56</sys_scope>
+        <sys_update_name>sys_ui_action_c711cc6e1bac3cd0e7004229bc4bcb60</sys_update_name>
+        <sys_updated_by>Terry.Lillo</sys_updated_by>
+        <sys_updated_on>2022-02-28 16:12:08</sys_updated_on>
+        <table>incident</table>
+        <ui11_compatible>true</ui11_compatible>
+        <ui16_compatible>true</ui16_compatible>
+    </sys_ui_action>
+    <sys_claim action="INSERT_OR_UPDATE">
+        <claim_owner_scope display_value="Incident to Request Conversion">448cd64e1bd5c55062e50ed2cd4bcb56</claim_owner_scope>
+        <claim_timestamp>17ea2a2870c0000001</claim_timestamp>
+        <metadata_update_name>sys_ui_action_c711cc6e1bac3cd0e7004229bc4bcb60</metadata_update_name>
+        <previous_claim_app_version>1.0.0</previous_claim_app_version>
+        <previous_claim_name>Incident to Request Conversion</previous_claim_name>
+        <previous_claim_scope>448cd64e1bd5c55062e50ed2cd4bcb56</previous_claim_scope>
+        <sys_created_by>Terry.Lillo</sys_created_by>
+        <sys_created_on>2022-01-28 21:41:07</sys_created_on>
+        <sys_id>8ab07f8a1b5945508c5143f3cc4bcbc9</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>Terry.Lillo</sys_updated_by>
+        <sys_updated_on>2022-01-28 21:41:07</sys_updated_on>
+    </sys_claim>
+</record_update>

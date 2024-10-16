@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <active>true</active>
+        <api_name>global.Incident_To_Request_Utils</api_name>
+        <caller_access/>
+        <client_callable>true</client_callable>
+        <description/>
+        <name>Incident_To_Request_Utils</name>
+        <script><![CDATA[var Incident_To_Request_Utils = Class.create();
+Incident_To_Request_Utils.prototype = Object.extendsObject(AbstractAjaxProcessor, {
+    startConversion: function() {
+        var incident = this.getParameter('number');
+        var catitem = this.getParameter('catitem');
+        var type = this.getParameter('type');
+        var opener, caller;
+
+        //Get Category Item
+        var itemGr = new GlideRecord('io_set_item');
+        itemGr.get(catitem);
+
+        //Get Incident
+        var incGr = new GlideRecord('incident');
+        incGr.addQuery('number', incident);
+        incGr.query();
+        if (incGr.hasNext()) {
+            incGr.next();
+            opener = incGr.opened_by;
+            caller = incGr.caller_id;
+
+            var checkConvertGr = new GlideRecord('u_incident_to_request_conversion');
+            checkConvertGr.addQuery('u_incident', incGr.sys_id);
+            checkConvertGr.query();
+
+            if (!checkConvertGr.hasNext()) {
+                //Create conversion record
+                var convertGr = new GlideRecord('u_incident_to_request_conversion');
+                convertGr.initialize();
+                convertGr.u_caller = caller;
+                convertGr.u_requestor = opener;
+                //convertGr.u_request = requestGr.sys_id;
+                convertGr.u_incident = incGr.sys_id;
+				if(type != 'agent'){
+                convertGr.u_state = 'New';
+				}
+				else{
+					convertGr.u_state = 'NewAgent';
+				}
+                convertGr.u_catalog_item = itemGr.sc_cat_item.sys_id;
+                convertGr.insert();
+
+                incGr.state = 3;
+                incGr.hold_reason = 1;
+                incGr.work_notes = 'Incident to request conversion started';
+                incGr.update();
+				var reply = 'Successfully converted ' + incident + ' to ' + itemGr.sc_cat_item.name;
+                return reply;
+            } else {
+                return 'Error: There is already an active conversion for this incident. New conversion not started.';
+            }
+        } else {
+            return 'Error: Incident not found.';
+        }
+    },
+    shouldConvert: function() {
+        //check if we should convert. If there's not already a converted request and there's a conversion record existing
+        var incident = this.getParameter('number');
+        var checkConvertGr = new GlideRecord('u_incident_to_request_conversion');
+        checkConvertGr.addQuery('u_incident', incident);
+        checkConvertGr.addQuery('u_state', 'Converted');
+        checkConvertGr.query();
+
+        if (checkConvertGr.hasNext()) {
+            return 'false';
+        } else {
+            var checkConvertBeginGr = new GlideRecord('u_incident_to_request_conversion');
+            checkConvertBeginGr.addQuery('u_incident', incident);
+            var stateCondition = checkConvertBeginGr.addQuery('u_state', 'New');
+			stateCondition.addOrCondition('u_state','NewAgent');
+            checkConvertBeginGr.query();
+            if (checkConvertBeginGr.hasNext()) {
+                return 'true';
+            } else {
+                return 'false';
+            }
+        }
+    },
+    getRequestVars: function() {
+		var variables = {};
+        var request = this.getParameter('number');
+        var grRequest = new GlideRecord('sc_req_item');
+        grRequest.addQuery('sys_id', request);
+        grRequest.query();
+        if (grRequest.hasNext) {
+            grRequest.next();
+
+///////Get Variables
+            var set = new GlideappVariablePoolQuestionSet();
+            set.setRequestID(grRequest.sys_id); // requested item sys_id
+            set.load();
+            var vs = set.getFlatQuestions();
+			gs.log('var set size ' + vs.size());
+            for (var i = 0; i < vs.size(); i++) {
+                if (vs.get(i).getLabel() != '' && vs.get(i).getName() != 'related_ritm' && vs.get(i).getName() != 'related_inc' && JSUtil.notNil(vs.get(i).getDisplayValue())) {
+                    //template.print(vs.get(i).getLabel() + ": " + vs.get(i).getDisplayValue() + "\n");
+					variables[vs.get(i).getName()] = vs.get(i).getValue();
+					gs.log(vs.get(i).getName() + ' = ' + variables[vs.get(i).getLabel()]);
+                }
+            }
+			
+            if (variables) {
+                return JSON.stringify(variables);
+            } else {
+                return;
+            }
+        }
+    },
+    getCategory: function() {
+        //Get the sys_id of a catalog item category
+        var item = this.getParameter('catitem');
+        var itemGr = new GlideRecord('io_set_item');
+        itemGr.addQuery('sys_id',item);
+		itemGr.query();
+		itemGr.next();
+		return itemGr.sc_cat_item.category;
+    },
+    getCatalogItem: function() {
+        //Get the sys_id of a catalog item category
+        var item = this.getParameter('catitem');
+        var itemGr = new GlideRecord('io_set_item');
+        itemGr.addQuery('sys_id',item);
+		itemGr.query();
+		itemGr.next();
+		return itemGr.sc_cat_item.sys_id;
+    },
+    getIncident: function() {
+        //Get the sys_id of a catalog item category
+        var item = this.getParameter('number');
+        var itemGr = new GlideRecord('incident');
+        itemGr.addQuery('number',item);
+		itemGr.query();
+		itemGr.next();
+		return itemGr.sys_id;
+    },
+    type: 'Incident_To_Request_Utils'
+});]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>Terry.Lillo</sys_created_by>
+        <sys_created_on>2021-06-24 20:07:16</sys_created_on>
+        <sys_id>0e90b0801b01fc908c5143f3cc4bcbb7</sys_id>
+        <sys_mod_count>114</sys_mod_count>
+        <sys_name>Incident_To_Request_Utils</sys_name>
+        <sys_package display_value="Global" source="global">global</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Incident to Request Conversion">448cd64e1bd5c55062e50ed2cd4bcb56</sys_scope>
+        <sys_update_name>sys_script_include_0e90b0801b01fc908c5143f3cc4bcbb7</sys_update_name>
+        <sys_updated_by>Terry.Lillo</sys_updated_by>
+        <sys_updated_on>2022-01-28 15:39:08</sys_updated_on>
+    </sys_script_include>
+    <sys_claim action="INSERT_OR_UPDATE">
+        <claim_owner_scope display_value="Incident to Request Conversion">448cd64e1bd5c55062e50ed2cd4bcb56</claim_owner_scope>
+        <claim_timestamp>17ea1571e900000001</claim_timestamp>
+        <metadata_update_name>sys_script_include_0e90b0801b01fc908c5143f3cc4bcbb7</metadata_update_name>
+        <previous_claim_app_version>1.0.0</previous_claim_app_version>
+        <previous_claim_name>Incident to Request Conversion</previous_claim_name>
+        <previous_claim_scope>448cd64e1bd5c55062e50ed2cd4bcb56</previous_claim_scope>
+        <sys_created_by>Terry.Lillo</sys_created_by>
+        <sys_created_on>2022-01-28 15:39:08</sys_created_on>
+        <sys_id>2fddde021b19c55062e50ed2cd4bcb4d</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>Terry.Lillo</sys_updated_by>
+        <sys_updated_on>2022-01-28 15:39:08</sys_updated_on>
+    </sys_claim>
+</record_update>

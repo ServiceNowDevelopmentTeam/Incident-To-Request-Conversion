@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <active>true</active>
+        <api_name>global.CatItemsUserCanAccess</api_name>
+        <caller_access/>
+        <client_callable>true</client_callable>
+        <description/>
+        <name>CatItemsUserCanAccess</name>
+        <script><![CDATA[function CatItemsUserCanAccess(userId) { 
+
+	var catItemArr  = [];
+	if(!gs.nil(userId)){
+		var catItems = new GlideRecord('sc_cat_item');
+		catItems.addActiveQuery();
+		catItems.query();
+		while(catItems.next()){
+			var ucu = new UserCriteriaUtil('', userId);
+			ucu.cat_item = catItems.sys_id.toString();
+			if(ucu.catItemCheck()){
+				catItemArr.push(ucu.cat_item);
+			}
+		}
+	}
+	return catItemArr;
+}]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>Terry.Lillo</sys_created_by>
+        <sys_created_on>2022-02-10 20:52:57</sys_created_on>
+        <sys_id>1a42ae9a1bad09108c5143f3cc4bcb5b</sys_id>
+        <sys_mod_count>16</sys_mod_count>
+        <sys_name>CatItemsUserCanAccess</sys_name>
+        <sys_package display_value="Incident to Request Conversion" source="448cd64e1bd5c55062e50ed2cd4bcb56">448cd64e1bd5c55062e50ed2cd4bcb56</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Incident to Request Conversion">448cd64e1bd5c55062e50ed2cd4bcb56</sys_scope>
+        <sys_update_name>sys_script_include_1a42ae9a1bad09108c5143f3cc4bcb5b</sys_update_name>
+        <sys_updated_by>Terry.Lillo</sys_updated_by>
+        <sys_updated_on>2022-02-10 22:18:20</sys_updated_on>
+    </sys_script_include>
+</record_update>

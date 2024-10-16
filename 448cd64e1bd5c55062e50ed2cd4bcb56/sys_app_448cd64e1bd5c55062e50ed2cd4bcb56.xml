@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?><record_update table="sys_app">
-    <sys_store_app action="delete_reclassify" reclassify_current="sys_app" reclassify_id="448cd64e1bd5c55062e50ed2cd4bcb56" reclassify_previous="sys_store_app"/>
     <sys_app action="INSERT_OR_UPDATE">
         <active>true</active>
         <can_edit_in_studio>true</can_edit_in_studio>
         <enforce_license>log</enforce_license>
         <guided_setup_guid/>
         <hide_on_ui>false</hide_on_ui>
+        <ide_created/>
         <installed_as_dependency>false</installed_as_dependency>
         <js_level>helsinki_es5</js_level>
         <licensable>true</licensable>
@@ -23,22 +23,23 @@
         <scoped_administration>false</scoped_administration>
         <short_description>Remove the Red Style From Convert to Request Button</short_description>
         <source>448cd64e1bd5c55062e50ed2cd4bcb56</source>
-        <store_correlation_id/>
+        <store_correlation_id>REPOAPP0001116202</store_correlation_id>
         <store_url/>
+        <subscription_entitlement/>
         <sys_class_name>sys_app</sys_class_name>
         <sys_code/>
         <sys_created_by>Terry.Lillo</sys_created_by>
         <sys_created_on>2022-02-11 16:48:55</sys_created_on>
         <sys_id>448cd64e1bd5c55062e50ed2cd4bcb56</sys_id>
-        <sys_mod_count>36</sys_mod_count>
+        <sys_mod_count>38</sys_mod_count>
         <sys_updated_by>Terry.Lillo</sys_updated_by>
-        <sys_updated_on>2023-10-06 14:58:22</sys_updated_on>
+        <sys_updated_on>2023-12-11 18:57:55</sys_updated_on>
         <template/>
         <trackable>true</trackable>
         <uninstall_blocked>false</uninstall_blocked>
         <user_role/>
         <vendor>API Group Inc</vendor>
         <vendor_prefix/>
-        <version>1.0.8</version>
+        <version>1.0.9</version>
     </sys_app>
 </record_update>

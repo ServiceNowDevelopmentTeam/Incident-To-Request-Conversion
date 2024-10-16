@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element attributes="update_synch=true" db_object_id="7cb8acef1be11010e7004229bc4bcbe3" extends="sys_metadata" label="Catalog Variable Set" max_length="40" name="io_set_item" type="collection">
+        <element display="true" label="Catalog Item" max_length="32" name="sc_cat_item" reference="sc_cat_item" reference_qual="javascript:new SNCCatalogUtil().getReferenceQualRlt();" type="reference" use_reference_qualifier="advanced"/>
+        <index name="index">
+            <element name="sc_cat_item"/>
+        </index>
+    </element>
+</database>

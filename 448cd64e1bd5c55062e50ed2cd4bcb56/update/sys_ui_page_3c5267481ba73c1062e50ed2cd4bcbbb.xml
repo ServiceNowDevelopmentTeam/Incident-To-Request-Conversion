@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_page">
+    <sys_ui_page action="INSERT_OR_UPDATE">
+        <category>catalog</category>
+        <client_script><![CDATA[function closewindow(type) {
+	if(type == 'agent'){
+		return;
+	}
+	else{
+    window.location.reload();
+	}
+}
+
+function proceed(type) {
+    var catitem = gel("c_item").value;
+    var inc = document.getElementById('vnumber').value;
+    var st = document.getElementById("vstate").value;
+    var caller = document.getElementById('vrequested_for').value;
+    var opener = document.getElementById('vcaller_id').value;
+    var number = document.getElementById('vnumber').value;
+
+    if (st.toString().indexOf('8') > -1 || st.toString().indexOf('6') > -1 || st.toString().indexOf('7') > -1) {
+        var lbl2 = document.getElementById('emessage');
+        lbl2.innerHTML = '<strong class="alert alert-danger" style="width:90%;">ERROR: Cannot create request as this Incident is either Closed/Cancelled/Resolved</strong>';
+        return;
+    }
+    if (catitem == '') {
+        var lbl = document.getElementById('emessage');
+        lbl.innerHTML = '<strong class="alert alert-danger" style="width:90%;">ERROR: Select Catalog Item and proceed</strong>';
+        return;
+    } else {
+        var lbl1 = document.getElementById('emessage');
+        lbl1.innerHTML = "";
+        var ga = new GlideAjax('Incident_To_Request_Utils');
+        ga.addParam("sysparm_name", "startConversion");
+        ga.addParam('catitem', catitem);
+        ga.addParam("number", number);
+		ga.addParam("type",type);
+        ga.getXMLAnswer(function(response) {
+            if (response && response.includes('Error')) {
+                //gs.addErrorMessage(response);
+            } else {
+                //gs.addInfoMessage(response);
+            }
+            if (type == 'agent') {
+                //gs.addInfoMessage('Redirecting...');
+                var ga = new GlideAjax('Incident_To_Request_Utils');
+                ga.addParam("sysparm_name", "getCategory");
+                ga.addParam('catitem', catitem);
+                ga.getXMLAnswer(function(response) {
+                    if (response.includes('Error')) {
+                        //gs.addErrorMessage(response);
+                    } else {
+                        var category = response;
+                        var ga = new GlideAjax('Incident_To_Request_Utils');
+                        ga.addParam("sysparm_name", "getCatalogItem");
+                        ga.addParam('catitem', catitem);
+                        ga.getXMLAnswer(function(response) {
+                            if (response.includes('Error')) {
+                                //gs.addErrorMessage(response);
+                            } else {
+                                var itemresponse = response;
+                                var ga = new GlideAjax('Incident_To_Request_Utils');
+                                ga.addParam("sysparm_name", "getIncident");
+                                ga.addParam('number', inc);
+                                ga.getXMLAnswer(function(response) {
+                                    if (response.includes('Error')) {
+                                       // gs.addErrorMessage(response);
+                                    } else {
+                                        var incresponse = response;
+                                        var newRequest = '/sp?id=sc_cat_item&sys_id=' + itemresponse + '&sysparm_category=' + category + '&sysparm_variables=%7B%22related_inc%22:%22' + incresponse + '%22%7D';
+                                        window.open(newRequest);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+            closewindow(type);
+        });
+    }
+}]]></client_script>
+        <description>Convert Incident to a Service Request.  Select Catalog Item</description>
+        <direct>false</direct>
+        <endpoint/>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+	<g:evaluate var="jvar_number" expression="RP.getWindowProperties().get('number') || RP.getParameterValue('number')" />
+	<g:evaluate var="jvar_state" expression="RP.getWindowProperties().get('state') || RP.getParameterValue('state')" />
+	<g:evaluate var="jvar_short_desc" expression="RP.getWindowProperties().get('short_description') || RP.getParameterValue('short_description')" />
+	<g:evaluate var="jvar_caller_id" expression="RP.getWindowProperties().get('caller_id') || RP.getParameterValue('caller_id')" />
+	<g:evaluate var="jvar_caller_id_quoted">
+		var string = '"' + (RP.getWindowProperties().get('caller_id') || RP.getParameterValue('caller_id')) + '"';
+		string;
+	</g:evaluate>
+	<g:evaluate var="jvar_requested_for" expression="RP.getWindowProperties().get('requested_for') || RP.getParameterValue('requested_for')" />
+	<g:evaluate var="jvar_caller_id_display" expression="RP.getWindowProperties().get('caller_id_display') || RP.getParameterValue('caller_id_display')" />
+	<g:evaluate var="jvar_requested_for_display" expression="RP.getWindowProperties().get('requested_for_display') || RP.getParameterValue('requested_for_display')" />
+	
+	
+	<input type="hidden" id="vnumber" name="vnumber" value="${jvar_number}"></input>
+	<input type="hidden" id="vstate" name="vstate" value="${jvar_state}"></input>
+	<input type="hidden" id="vshort_desc" name="vshort_desc" value="${jvar_short_desc}"></input>
+	<input type="hidden" id="vstate" name="vstate" value="${jvar_state}"></input>
+	<input type="hidden" id="vcaller_id" name="vcaller_id" value="${jvar_caller_id}"></input>
+	<input type="hidden" id="vrequested_for" name="vrequested_for" value="${jvar_requested_for}"></input>
+	<input type="hidden" id="vcaller_id_display" name="vcaller_id_display" value="${jvar_caller_id_display}"></input>
+	<input type="hidden" id="vrequested_for_display" name="vrequested_for_display" value="${jvar_requested_for_display}"></input>
+	
+	<div class="panel panel-default" style="text=align:justify;border: none !important;">
+		<div class="panel-heading">
+			<h1 class="panel-title" style="font-size: 18px;"><strong>Convert To Request</strong></h1>
+  	  	</div>
+			<div class="panel-body " style="text=align:justify;padding-left:10px;padding-right:10px;border: none !important;">	
+				<table class="table" style="width:90%;">
+					<tbody>
+						<tr class="danger">
+							<th style="width:30%;">Number</th>
+							<td style="width:70%;">${jvar_number}</td>
+						</tr>
+						<tr>
+							<th style="width:30%;">Short Description</th>
+							<td style="width:70%;text-align:justify;">${jvar_short_desc}</td>
+						</tr>
+					</tbody>
+				</table>
+				<span  style="font-size: 14px;"><strong>Select Catalog Item</strong></span>
+				<table class="table" style="width:90%;border:0;">
+					<tr><td style="width:100%;border:0;"><g:ui_reference name="c_item" query="sc_cat_item.active=true^variable_set=74c273a43724370090b68cf6c3990ea4^sc_cat_item.sc_catalogsLIKEe0d08b13c3330100c8b837659bba8fb4^sc_cat_item.categoryISNOTEMPTY^sc_cat_item=javascript:CatItemsUserCanAccess(${jvar_caller_id_quoted})" table="io_set_item"/></td></tr>
+				</table>
+				<div  id="emessage" name="emessage" style="padding-left:15px;padding-right:15px;width:90%;"></div><br/>
+				<table class="table" style="width:90%;border:0;">
+					<tr>
+					<td style="padding:20px;text-align: left;margin-left: 1em;"><button type="button" class="btn btn-danger" style="width:200px;" onclick="proceed('client')">Client Filled Conversion</button> </td>
+					<td style="padding:20px;text-align: left;margin-left: 1em;"><button type="button" class="btn btn-danger" style="width:200px;" onclick="proceed('agent')">Agent Filled Conversion</button> </td>
+					<td style="padding:20px;text-align: right; margin-right: 1em;"><button type="button" class="btn btn-primary" style="width:200px;" onclick="closewindow()">Close</button> </td>
+				</tr>
+				</table>
+		</div>
+	</div>
+</j:jelly>]]></html>
+        <name>catalog_item_list</name>
+        <processing_script/>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>Terry.Lillo</sys_created_by>
+        <sys_created_on>2021-10-27 15:40:30</sys_created_on>
+        <sys_id>3c5267481ba73c1062e50ed2cd4bcbbb</sys_id>
+        <sys_mod_count>20</sys_mod_count>
+        <sys_name>catalog_item_list</sys_name>
+        <sys_package display_value="Global" source="global">global</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Incident to Request Conversion">448cd64e1bd5c55062e50ed2cd4bcb56</sys_scope>
+        <sys_update_name>sys_ui_page_3c5267481ba73c1062e50ed2cd4bcbbb</sys_update_name>
+        <sys_updated_by>Terry.Lillo</sys_updated_by>
+        <sys_updated_on>2022-02-10 22:04:15</sys_updated_on>
+    </sys_ui_page>
+    <sys_claim action="INSERT_OR_UPDATE">
+        <claim_owner_scope display_value="Incident to Request Conversion">448cd64e1bd5c55062e50ed2cd4bcb56</claim_owner_scope>
+        <claim_timestamp>17ea15c5bd30000001</claim_timestamp>
+        <metadata_update_name>sys_ui_page_3c5267481ba73c1062e50ed2cd4bcbbb</metadata_update_name>
+        <previous_claim_app_version>1.0.0</previous_claim_app_version>
+        <previous_claim_name>Incident to Request Conversion</previous_claim_name>
+        <previous_claim_scope>448cd64e1bd5c55062e50ed2cd4bcb56</previous_claim_scope>
+        <sys_created_by>Terry.Lillo</sys_created_by>
+        <sys_created_on>2022-01-28 15:44:51</sys_created_on>
+        <sys_id>532f1a421b19c55062e50ed2cd4bcbd3</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>Terry.Lillo</sys_updated_by>
+        <sys_updated_on>2022-01-28 15:44:51</sys_updated_on>
+    </sys_claim>
+</record_update>

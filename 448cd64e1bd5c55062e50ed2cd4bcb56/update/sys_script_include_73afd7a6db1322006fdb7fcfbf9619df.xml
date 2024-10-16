@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <active>true</active>
+        <api_name>global.UserCriteriaUtil</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description>Checks to see if the user fufills a given user criteria based on the default users, groups, roles, companies, locations departments and script. Plus working for Match all and checks if the user criteria is active as well.&#13;
+Does not support "Extending User Criteria"&#13;
+&#13;
+Use by calling:&#13;
+var ucu = new UserCriteriaUtil('USER CRITERIA SYS_ID', 'USER SYS_ID');&#13;
+ucu.check();&#13;
+&#13;
+or &#13;
+&#13;
+&#13;
+var ucu = new UserCriteriaUtil('', 'USER SYS_ID');&#13;
+ucu.cat_item = 'CAT ITEM SYS_ID';&#13;
+ucu.catItemCheck();</description>
+        <name>UserCriteriaUtil</name>
+        <script><![CDATA[var UserCriteriaUtil = Class.create();
+UserCriteriaUtil.prototype = {
+	initialize: function(criteria_id, user_id) {
+		/**************************************
+		*****      Activate Debugging     *****
+		**************************************/
+		this.debug = (gs.getProperty('instance_name') == 'apigroupdev' || gs.getProperty('instance_name')) == 'apigrouptest' ? false : true;
+		/**************************************
+		**************************************/
+		if(this.debug) { gs.log('Debug: ON', 'UCU'); }
+		if(this.debug) { gs.log('Initializing...', 'UCU'); }
+		if(this.debug) { gs.log('user_id: ' + user_id, 'UCU'); }
+		if(this.debug) { gs.log('criteria_id: ' + criteria_id, 'UCU'); }
+		this.user = user_id ? gs.getUserByID(user_id) : gs.getUser();
+		this.user_id = user_id ? user_id : gs.getUserID();
+		this.criteria = this._getTable('user_criteria', criteria_id); //Get User Criteria record
+		this.match_all  = this.criteria.match_all; //User criteria must match all criterias
+	},
+
+	catItemCheck : function() {
+		var result = false;
+		if(this.cat_item){
+			if(this.debug) { gs.log('Getting Cat Item Available For Criteria.', 'UCU'); }
+			var availableForCriteria = new GlideRecord('sc_cat_item_user_criteria_mtom');
+			availableForCriteria.addQuery('sc_cat_item',this.cat_item);
+			availableForCriteria.addQuery('user_criteria','!=','');
+			availableForCriteria.query();
+			if(!availableForCriteria.hasNext()){
+				if(this.debug) { gs.log('No Cat Item Available For Criteria Found.', 'UCU'); }
+				result = true;
+			}
+			while(availableForCriteria.next()){
+				var criteria_id = availableForCriteria.user_criteria.sys_id.toString();
+				this.criteria = this._getTable('user_criteria', criteria_id); //Get User Criteria record
+				if(this.check()){
+					if(this.debug) { gs.log('Cat Item Available For Criteria Matched.', 'UCU'); }
+					result = true;
+					break;
+				}
+			}
+
+			if(this.debug) { gs.log('Getting Cat Item Not Available For Criteria.', 'UCU'); }
+			var notAvailableForCriteria = new GlideRecord('sc_cat_item_user_criteria_no_mtom');
+			notAvailableForCriteria.addQuery('sc_cat_item',this.cat_item);
+			notAvailableForCriteria.addQuery('user_criteria','!=','');
+			notAvailableForCriteria.query();
+
+			while(notAvailableForCriteria.next()){
+				var criteria_no_id = notAvailableForCriteria.user_criteria.sys_id.toString();
+				this.criteria = this._getTable('user_criteria', criteria_no_id); //Get User Criteria record
+				if(this.check()){
+					if(this.debug) { gs.log('Cat Item Not Available For Criteria Matched.', 'UCU'); }
+					result = false;
+					break;
+				}
+			}
+
+		}
+		return result;
+	},
+
+	check : function() {
+		if(this.debug) { gs.log('Got criteria, checking to see if it is active...', 'UCU'); }
+		if(!this.criteria.active) {
+			return false; //User Criteria is inactive
+		}
+		if(this.debug) { gs.log('Active check passed, starting main functions...', 'UCU'); }
+		if(this.debug) { gs.log('', 'UCU'); } //Space in log
+
+		/**************************
+		***        User         ***
+		**************************/
+		if(this.debug) { gs.log('Starting user check...', 'UCU'); }
+		var userCheck = this._checkUser();
+		if(this.debug) { gs.log("UserCheck returned: " + userCheck, 'UCU'); }
+		if(((this.match_all && !userCheck) || !this.match_all && userCheck) && userCheck != null) { //If match_all is enabled and userCheck is false, return that match_all failed OR return true if userCheck is true and match_all is disabled.
+			return userCheck;
+		}
+		if(this.debug) { gs.log('', 'UCU'); } //Space in log
+
+		/**************************
+		***        Group        ***
+		**************************/
+		if(this.debug) { gs.log('Starting group check...', 'UCU'); }
+		var groupCheck = this._checkGroup();
+		if(this.debug) { gs.log("GroupCheck returned: " + groupCheck, 'UCU'); }
+		if(((this.match_all && !groupCheck) || !this.match_all && groupCheck) && groupCheck != null) { //If match_all is enabled and groupCheck is false, return that match_all failed OR return true if groupCheck is true and match_all is disabled.
+			return groupCheck;
+		}
+		if(this.debug) { gs.log('', 'UCU'); } //Space in log
+
+		/**************************
+		***        Role         ***
+		**************************/
+		if(this.debug) { gs.log('Starting role check...', 'UCU'); }
+		var roleCheck = this._checkRole();
+		if(this.debug) { gs.log("RoleCheck returned: " + roleCheck + ' for ' + this.criteria.role, 'UCU'); }
+		if(((this.match_all && !roleCheck) || !this.match_all && roleCheck) && roleCheck != null) { //If match_all is enabled and roleCheck is false, return that match_all failed OR return true if roleCheck is true and match_all is disabled.
+			return roleCheck;
+		}
+		if(this.debug) { gs.log('', 'UCU'); } //Space in log
+
+		/**************************
+		***       Company       ***
+		**************************/
+		if(this.debug) { gs.log('Starting company check...', 'UCU'); }
+		var companyCheck = this._checkCompany();
+		if(this.debug) { gs.log("CompanyCheck returned: " + companyCheck, 'UCU'); }
+		if(((this.match_all && !companyCheck) || !this.match_all && companyCheck) && companyCheck != null) { //If match_all is enabled and companyCheck is false, return that match_all failed OR return true if companyCheck is true and match_all is disabled.
+			return companyCheck;
+		}
+		if(this.debug) { gs.log('', 'UCU'); } //Space in log
+
+		/**************************
+		***      Location       ***
+		**************************/
+		if(this.debug) { gs.log('Starting location check...', 'UCU'); }
+		var locationCheck = this._checkLocation();
+		if(this.debug) { gs.log("LocationCheck returned: " + locationCheck, 'UCU'); }
+		if(((this.match_all && !locationCheck) || !this.match_all && locationCheck) && locationCheck != null) { //If match_all is enabled and locationCheck is false, return that match_all failed OR return true if locationCheck is true and match_all is disabled.
+			return locationCheck;
+		}
+		if(this.debug) { gs.log('', 'UCU'); } //Space in log
+
+		/**************************
+		***     Department      ***
+		**************************/
+		if(this.debug) { gs.log('Starting department check...', 'UCU'); }
+		var departmentCheck = this._checkDepartment();
+		if(this.debug) { gs.log("DepartmentCheck returned: " + departmentCheck, 'UCU'); }
+		if(((this.match_all && !departmentCheck) || !this.match_all && departmentCheck) && departmentCheck != null) { //If match_all is enabled and departmentCheck is false, return that match_all failed OR return true if departmentCheck is true and match_all is disabled.
+			return departmentCheck;
+		}
+		if(this.debug) { gs.log('', 'UCU'); } //Space in log
+
+		/**************************
+		***       Script        ***
+		**************************/
+		if(this.debug) { gs.log('Starting script check...', 'UCU'); }
+		if(this.criteria.advanced) { //Is the script field even enabled
+			var scriptCheck = this._checkScript();
+			if(this.debug) { gs.log("ScriptCheck returned: " + scriptCheck, 'UCU'); }
+			if(((this.match_all && !scriptCheck) || !this.match_all && scriptCheck) && scriptCheck != null) { //If match_all is enabled and scriptCheck is false, return that match_all failed OR return true if scriptCheck is true and match_all is disabled.
+				return scriptCheck;
+			}
+		} else {
+			if(this.debug) { gs.log('Script (Advanced) not enabled, skipping.', 'UCU'); }
+		}
+		if(this.debug) { gs.log('', 'UCU'); } //Space in log
+
+		/**************************
+		***       Finally       ***
+		**************************/
+		if(this.match_all) {
+			if(this.debug) { gs.log('Match all enabled and no false returned on checks, returning true...', 'UCU'); }
+			return true;
+		} else {
+			if(this.debug) { gs.log('Nothing matched, returning false...', 'UCU'); }
+			return false;
+		}
+	},
+
+	_checkScript : function() {
+		if(!this.criteria.script.isNil() && this.criteria.script != '') {
+			if(this.debug) { gs.log("Script is: if(" + this.criteria.script + ")", 'UCU'); }
+			try {
+				if(eval(this.criteria.script)) { //Execute script to see if it is true
+					return true;
+				}
+				return false; //Nothing found
+			} catch(e) {
+				gs.log("DevoCheckCriteria: Error in User Criteria Script field: " + e.message, 'UCU');
+			}
+		}
+		return null;
+	},
+
+	_checkDepartment : function() {
+		//var department = this.user.getDepartmentID(); //getDepartmentID() is not working, replacing with a GlideRecord query
+		var u = new GlideRecord('sys_user');
+		u.get(this.user_id);
+		var department = u.department;
+		if(this.debug) { gs.log('User department: ' + department, 'UCU'); }
+		if(!this.criteria.department.isNil() && !department.isNil() && department != '') {
+			if(this.criteria.department.indexOf(department) >= 0) { //array.indexOf the user's department (will return -1 if not found)
+				return true;
+			}
+			return false; //Nothing found
+		}
+		return null;
+	},
+
+	_checkLocation : function() {
+		//var location = this.user.getLocation(); //getLocation() is not working, replacing with a GlideRecord query
+		var u = new GlideRecord('sys_user');
+		u.get(this.user_id);
+		var location = u.location;
+		if(this.debug) { gs.log('User location: ' + location, 'UCU'); }
+		if(!this.criteria.location.isNil() && !location.isNil() && location != '') {
+			if(this.criteria.location.indexOf(location) >= 0) { //array.indexOf the user's location (will return -1 if not found)
+				return true;
+			}
+			return false; //Nothing found
+		}
+		return null;
+	},
+
+	_checkCompany : function() {
+		//var company = this.user.getCompanyID(); //getCompanyID() is not working, replacing with a GlideRecord query
+		var u = new GlideRecord('sys_user');
+		u.get(this.user_id);
+		var company = u.company;
+		if(this.debug) { gs.log('User company: ' + company, 'UCU'); }
+		if(!this.criteria.company.isNil() && !company.isNil() && company != '') {
+			if(this.criteria.company.indexOf(company) >= 0) { //array.indexOf the user's company (will return -1 if not found)
+				return true;
+			}
+			return false; //Nothing found
+		}
+		return null;
+	},
+
+	_checkRole : function() {
+		if(this.criteria.role.includes('940ba702933002009c8579b4f47ffbe2')){
+			this.criteria.role = this.criteria.role.splice(this.criteria.role.indexOf('940ba702933002009c8579b4f47ffbe2'),1);
+		}
+		if(!this.criteria.role.isNil()) {
+			if(this.debug) { gs.log('Checking if the user has one of the roles: ' + this.criteria.role, 'UCU'); }
+			return gs.hasRole(this.criteria.role); //hasRole takes in the array of roles (comma seperated list) and returns true or false.
+		}
+		return null;
+	},
+
+	_checkGroup : function() {
+		if(!this.criteria.group.isNil()) {
+			if(this.debug) { gs.log('Looping through the groups to see if the user is a member of one of: ' + this.criteria.group, 'UCU'); }
+			var g = this.criteria.group.split(',');
+			for (var i=0; i< g.length; i++) {
+				if(this.debug) { gs.log('Checking membership of : ' + g[i], 'UCU'); }
+				if(this.user.isMemberOf(g[i])) { //Looping through the groups, see if the user is a member of one of them
+					return true;
+				}
+			}
+			return false; //Nothing found
+		}
+		return null;
+	},
+
+	_checkUser : function() {
+		if(!this.criteria.user.isNil()) {
+			if(this.debug) { gs.log('Checking to see if user is on the list of users: ' + this.criteria.user, 'UCU'); }
+			if(this.criteria.user.indexOf(this.user_id) >= 0) { //array.indexOf the user (will return -1 if not found)
+				return true;
+			}
+			return false; //Nothing found
+		}
+		return null;
+	},
+
+	_getTable : function(table, sys_id) {
+		var cri = new GlideRecord(table);
+		cri.get(sys_id);
+		return cri;
+	},
+
+	type: 'UserCriteriaUtil'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin_SHARE</sys_created_by>
+        <sys_created_on>2016-11-28 09:59:18</sys_created_on>
+        <sys_id>73afd7a6db1322006fdb7fcfbf9619df</sys_id>
+        <sys_mod_count>29</sys_mod_count>
+        <sys_name>UserCriteriaUtil</sys_name>
+        <sys_package display_value="Incident to Request Conversion" source="448cd64e1bd5c55062e50ed2cd4bcb56">448cd64e1bd5c55062e50ed2cd4bcb56</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="Incident to Request Conversion">448cd64e1bd5c55062e50ed2cd4bcb56</sys_scope>
+        <sys_update_name>sys_script_include_73afd7a6db1322006fdb7fcfbf9619df</sys_update_name>
+        <sys_updated_by>Terry.Lillo</sys_updated_by>
+        <sys_updated_on>2022-02-10 20:38:57</sys_updated_on>
+    </sys_script_include>
+    <sys_claim action="INSERT_OR_UPDATE">
+        <claim_owner_scope display_value="Incident to Request Conversion">448cd64e1bd5c55062e50ed2cd4bcb56</claim_owner_scope>
+        <claim_timestamp>17edfdbc0f60000001</claim_timestamp>
+        <metadata_update_name>sys_script_include_73afd7a6db1322006fdb7fcfbf9619df</metadata_update_name>
+        <previous_claim_app_version>1.0.1</previous_claim_app_version>
+        <previous_claim_name>Incident to Request Conversion</previous_claim_name>
+        <previous_claim_scope>448cd64e1bd5c55062e50ed2cd4bcb56</previous_claim_scope>
+        <sys_created_by>Terry.Lillo</sys_created_by>
+        <sys_created_on>2022-02-09 19:00:28</sys_created_on>
+        <sys_id>e50f380a1bad851062e50ed2cd4bcb9f</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_updated_by>Terry.Lillo</sys_updated_by>
+        <sys_updated_on>2022-02-09 19:00:28</sys_updated_on>
+    </sys_claim>
+</record_update>
